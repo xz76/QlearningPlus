@@ -4,6 +4,31 @@
 #' @param ... Additional arguments to `DynTxRegime::qLearn()`.
 #' @return Output from `DynTxRegime::qLearn`.
 #' @export
-qlearning_dyn <- function(data, ...) {
-  DynTxRegime::qLearn(data = data, ...)
+qlearning_dyn <-  function(data, formula = f1, testdat){
+  m1 <- lm(formula, data = data)
+  beta_rate <- check_rate(coef_nm = names(coef(m1)),
+                          true_select = true_select)
+  get_opt <- function(data, model){
+    res <- matrix(NA, nrow = nrow(data),
+                  ncol = length(unique(data$a)))
+    for (i in seq(length(unique(data$a)))){
+      data$a <- i
+      data$a <- factor(data$a, levels = c("1", "2", "3", "4"))
+      res[, i] <- predict(m1, data)
+    }
+    res
+  }
+  recommend <- apply(get_opt(testdat, m1), 1, which.max)
+  idx <- cbind(seq_len(nrow(testdat)), recommend)
+  trtvalue <- testdat[, c("t1","t2","t3", "t4")]
+  methodvalue <- mean(trtvalue[idx])
+  rate <- mean(recommend == testdat$opt)
+  newdat <- data
+  newdat$a <- factor(data$opt, levels = c("1", "2", "3", "4"))
+  yhat <- predict(m1, newdata = newdat)
+  yopt <- data$intercept + data$value
+  mse <- yopt - yhat
+  c(agreement = rate, methodvalue = methodvalue,
+    optvalue = mean(testdat$value),
+    alpha = 1, beta_rate = beta_rate, MSE = mean(mse^2))
 }

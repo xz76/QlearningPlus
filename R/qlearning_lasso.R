@@ -8,12 +8,31 @@
 #' @param lambda Optional lambda value; if NULL, cross-validation will be used.
 #' @return A fitted `cv.glmnet` object.
 #' @export
-qlearning_lasso <- function(X, A, Y, lambda = NULL) {
-  X_tilde <- X * A  # interaction
-  if (is.null(lambda)) {
-    fit <- glmnet::cv.glmnet(X_tilde, Y, alpha = 1)
-  } else {
-    fit <- glmnet::glmnet(X_tilde, Y, alpha = 1, lambda = lambda)
+qlearning_lasso <- function(data, formula = f1, testdat){
+  m1 <- glmnetUtils::cv.glmnet(formula, data = data, nfolds = 10)
+  coef_mat <- as.matrix(coef(m1, s = "lambda.min"))
+  coef_nm <- names(coef_mat[abs(coef_mat[, 1]) != 0, ])
+  beta_rate <- check_rate(coef_nm = coef_nm, true_select = true_select)
+  get_opt <- function(data, model){
+    res <- matrix(NA, nrow = nrow(data), ncol = length(unique(data$a)))
+    for (i in seq(length(unique(data$a)))){
+      data$a <- i
+      data$a <- factor(data$a, levels = c("1", "2", "3", "4"))
+      res[, i] <- predict(m1, data)
+    }
+    res
   }
-  return(fit)
+  recommend <- apply(get_opt(testdat, m1), 1, which.max)
+  idx <- cbind(seq_len(nrow(testdat)), recommend)
+  trtvalue <- testdat[, c("t1","t2","t3", "t4")]
+  methodvalue <- mean(trtvalue[idx])
+  rate <- mean(recommend == testdat$opt)
+  newdat <- data
+  newdat$a <- factor(data$opt, levels = c("1", "2", "3", "4"))
+  yhat <- predict(m1, newdata = newdat)
+  yopt <- data$intercept + data$value
+  mse <- yopt - yhat
+  c(agreement = rate, methodvalue = methodvalue,
+    optvalue = mean(testdat$value),
+    alpha = 1, beta_rate = beta_rate, MSE = mean(mse^2))
 }
