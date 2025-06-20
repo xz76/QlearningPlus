@@ -1,0 +1,16 @@
+Package: QlearningPlus
+Title: Extended Q-learning Methods for Dynamic Treatment Regimes
+Version: 0.1.0
+Authors@R: 
+    person("Xuan", "Zhang", email = "xz76@iu.edu", role = c("aut", "cre"))
+Description: Implements Q-learning for dynamic treatment regimes, including standard Q-learning via DynTxRegime, and extensions such as Q-learning with lasso, elastic net, and Bayesian weighted Q-learning.
+Depends: R (>= 4.0)
+Imports:
+    DynTxRegime,
+    glmnet,
+    rstan,
+    methods
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.3.2
