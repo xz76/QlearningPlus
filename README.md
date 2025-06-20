@@ -17,11 +17,16 @@ output: github_document
 
 ## Installation
 
-\`\`\`r \# Install dependencies install.packages(c("glmnet", "DynTxRegime", "rstan", "keras", "tensorflow")) keras::install_keras()
+```r
+# Install dependencies 
+
+install.packages(c("glmnet", "DynTxRegime", "rstan", "keras", "tensorflow")) keras::install_keras()
 
 # Install the development version from GitHub
 
 devtools::install_github("xz76/QlearningPlus")
+
+```
 
 # Example Usage
 
