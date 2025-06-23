@@ -4,7 +4,7 @@
 \alias{qlearning_elasticnet}
 \title{Q-learning with Elastic Net Regularization}
 \usage{
-qlearning_elasticnet(data, formula = f1, testdat)
+qlearning_elasticnet(data, formula = f1)
 }
 \arguments{
 \item{X}{A matrix of covariates.}

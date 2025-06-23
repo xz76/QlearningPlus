@@ -2,6 +2,6 @@
 
 export(cvae_qlearning)
 export(qlearning_bayes)
-export(qlearning_dyn)
+export(qlearning_classQ)
 export(qlearning_elasticnet)
 export(qlearning_lasso)

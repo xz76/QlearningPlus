@@ -4,7 +4,7 @@
 \alias{qlearning_lasso}
 \title{Q-learning with Lasso Regularization}
 \usage{
-qlearning_lasso(data, formula = f1, testdat)
+qlearning_lasso(data, formula = f1)
 }
 \arguments{
 \item{X}{A matrix of covariates.}

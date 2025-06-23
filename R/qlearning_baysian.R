@@ -6,7 +6,7 @@
 #' @param prior_weight Prior weight parameter.
 #' @return Placeholder for Bayesian model output.
 #' @export
-qlearning_bayes <- function(data, formula = f1, testdat){
+qlearning_bayes <- function(data, formula = f1){
   # mod <- glmnetUtils::cv.glmnet(formula, data = data, nfolds = 10,
   #                               alpha = 1)
   newdat <- data

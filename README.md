@@ -5,7 +5,8 @@ output: github_document
 
 # QlearningPlus
 
-`QlearningPlus` is an R package that implements and extends Q-learning methods for estimating optimal dynamic treatment regimes (DTRs). This package integrates standard Q-learning approaches and introduces regularized and Bayesian extensions, including a deep learning-based method using Conditional Variational Autoencoders (CVAE), suitable for high-dimensional or multi-treatment settings.
+`QlearningPlus` is an R package that implements and extends Q-learning methods for 
+estimating optimal dynamic treatment regimes (DTRs). This package integrates standard Q-learning approaches and introduces regularized and Bayesian extensions, including a deep learning-based method using Conditional Variational Autoencoders (CVAE), suitable for high-dimensional or multi-treatment settings.
 
 ## Features
 

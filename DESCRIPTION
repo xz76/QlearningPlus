@@ -6,10 +6,12 @@ Authors@R:
 Description: Implements Q-learning for dynamic treatment regimes, including standard Q-learning via DynTxRegime, and extensions such as Q-learning with lasso, elastic net, and Bayesian weighted Q-learning.
 Depends: R (>= 4.0)
 Imports:
-    DynTxRegime,
+    caret,
     glmnet,
+    DynTxRegime,
     rstan,
-    methods
+    keras,
+    tensorflow
 License: GPL-3
 Encoding: UTF-8
 LazyData: true

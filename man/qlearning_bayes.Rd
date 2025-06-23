@@ -4,7 +4,7 @@
 \alias{qlearning_bayes}
 \title{Bayesian Weighted Q-learning (Skeleton)}
 \usage{
-qlearning_bayes(data, formula = f1, testdat)
+qlearning_bayes(data, formula = f1)
 }
 \arguments{
 \item{X}{Covariates matrix.}

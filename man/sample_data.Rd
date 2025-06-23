@@ -5,11 +5,11 @@
 \alias{sample_data}
 \title{Simulated Q-learning Example Dataset}
 \format{
-A data frame with 200 observations and 7 variables:
+A data frame with 10000 observations and 10 variables:
 \describe{
   \item{Y}{Continuous outcome}
-  \item{A}{Binary treatment indicator (-1 or 1)}
-  \item{X1--X5}{Covariates}
+  \item{A}{Treatment indicator (1, 2, 3, 4)}
+  \item{x1--x10}{Covariates}
 }
 }
 \usage{
