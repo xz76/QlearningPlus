@@ -34,7 +34,6 @@ qlearning_bayes <- function(data, formula = f1){
 
   coef_mat <- as.matrix(coef(m1, s = "lambda.min"))
   coef_nm <- names(coef_mat[abs(coef_mat[, 1]) != 0, ])
-  beta_rate <- check_rate(coef_nm = coef_nm, true_select = true_select)
   get_opt <- function(data, model){
     res <- matrix(NA, nrow = nrow(data),
                   ncol = length(unique(data$a)))
@@ -45,17 +44,17 @@ qlearning_bayes <- function(data, formula = f1){
     }
     res
   }
-  recommend <- apply(get_opt(testdat, m1), 1, which.max)
-  idx <- cbind(seq_len(nrow(testdat)), recommend)
-  trtvalue <- testdat[, c("t1","t2","t3", "t4")]
+  recommend <- apply(get_opt(data = data, m1), 1, which.max)
+  idx <- cbind(seq_len(nrow(data)), recommend)
+  trtvalue <- data[, c("t1","t2","t3", "t4")]
   methodvalue <- mean(trtvalue[idx])
-  rate <- mean(recommend == testdat$opt)
+  rate <- mean(recommend == data$opt)
   newdat <- data
   newdat$a <- factor(data$opt, levels = c("1", "2", "3", "4"))
   yhat <- predict(m1, newdata = newdat, s = 'lambda.min')
   yopt <- data$intercept + data$value
   mse <- yopt - yhat
   c(agreement = rate, methodvalue = methodvalue,
-    optvalue = mean(testdat$value),
-    alpha = 1, beta_rate = beta_rate, MSE = mean(mse^2))
+    optvalue = mean(data$value),
+    alpha = 1, MSE = mean(mse^2))
 }
