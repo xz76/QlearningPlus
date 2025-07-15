@@ -13,6 +13,7 @@
 #' @param default_var Default variance for weak priors.
 #' @return A list containing model, methodvalue, recommended treatments, and more.
 #' @export
+#'
 dtr <-  function(data, formula = f1, method = "Qlearning", treatment = "a", outcome = "y",
                  prior_mean = NULL, prior_sd = NULL, sample_sd = NULL, default_var = 1e6){
   levels <- levels(data[[treatment]])
