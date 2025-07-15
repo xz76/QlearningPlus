@@ -57,4 +57,5 @@ qlearning_bayes <- function(data, formula = f1){
   c(agreement = rate, methodvalue = methodvalue,
     optvalue = mean(data$value),
     alpha = 1, MSE = mean(mse^2))
+
 }
