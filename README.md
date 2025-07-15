@@ -47,12 +47,7 @@ Define the regression formula as `f1`
 
 The dtr() function is a unified interface for estimating optimal dynamic treatment regimes (DTRs) using various extensions of Q-learning. It supports standard regression-based Q-learning, Lasso and Elastic Net regularization, Bayesian-weighted Q-learning, and can accommodate user-defined priors on treatment effects.
 
-Key Features 
-• Standard Q-learning via linear regression. 
-• Lasso-penalized Q-learning via glmnet. 
-• Elastic Net Q-learning via caret and glmnet. 
-• Bayesian Q-learning using conjugate normal priors and precision weighting. 
-• Flexible for multi-treatment settings.
+Key Features • Standard Q-learning via linear regression. • Lasso-penalized Q-learning via glmnet. • Elastic Net Q-learning via caret and glmnet. • Bayesian Q-learning using conjugate normal priors and precision weighting. • Flexible for multi-treatment settings.
 
 ## Example Usage
 
@@ -76,17 +71,13 @@ fit_bayes <- dtr(data = sample_data, formula = f1, method = "BayesianQ")
 
 ## `plot_dtr_forest` Plot Function
 
-### BayesianQ Method 
+### BayesianQ Method
 
 — Posterior Distribution Visualization
 
-The function `plot_dtr_forest()` provides a clear visualization of the posterior 
-distributions of treatment effects obtained from Bayesian Q-learning. 
-This plot helps illustrate both the uncertainty and the distributional 
-shape of the posterior samples for each treatment.
+The function `plot_dtr_forest()` provides a clear visualization of the posterior distributions of treatment effects obtained from Bayesian Q-learning. This plot helps illustrate both the uncertainty and the distributional shape of the posterior samples for each treatment.
 
-
-```r
+``` r
 # Assuming fit_bayes is the output from dtr(..., method = "BayesianQ")
 plot_dtr_forest(fit_bayes, method = "BayesianQ")
 ```
@@ -95,10 +86,7 @@ plot_dtr_forest(fit_bayes, method = "BayesianQ")
 
 — Coefficient Visualization
 
-The `plot_dtr_forest()` function can also be used to visualize the non-zero 
-coefficients selected by Lasso and Elastic Net models in the QlearningPlus package. 
-This provides an intuitive, forest-plot-style display of the estimated effects of 
-covariates after regularization.
+The `plot_dtr_forest()` function can also be used to visualize the non-zero coefficients selected by Lasso and Elastic Net models in the QlearningPlus package. This provides an intuitive, forest-plot-style display of the estimated effects of covariates after regularization.
 
 ``` r
 # Assuming fit_lasso is the output from dtr(..., method = "Lasso")
@@ -107,3 +95,24 @@ plot_dtr_forest(fit_lasso, method = "Lasso")
 # Assuming fit_elnet is the output from dtr(..., method = "ElasticNet")
 plot_dtr_forest(fit_elnet, method = "ElasticNet")
 ```
+
+## `qlearning_gof()` Goodness-of-Fit Metrics
+
+The `qlearning_gof()` function computes standard goodness-of-fit (GOF) metrics
+to evaluate how well the model predictions align with the observed outcomes. 
+This is particularly useful for comparing models across different Q-learning 
+methods (standard, Lasso, ElasticNet).The key metrics provided: RMSE, MAE, R$^2$
+
+```r
+# Assuming fit_lasso is the output from dtr(..., method = "Lasso")
+qlearning_gof(fit_lasso)
+
+# Assuming fit_elnet is the output from dtr(..., method = "ElasticNet")
+qlearning_gof(fit_elnet)
+
+# Assuming fit_q is the output from dtr(..., method = "Qlearning")
+qlearning_gof(fit_q)
+```
+
+
+
