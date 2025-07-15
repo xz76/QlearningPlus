@@ -1,13 +1,18 @@
-#' Q-learning with Lasso Regularization, Elastic Net Regularization, Bayesian weights, CVAE
+#' Dynamic Treatment Regime Estimation via Q-learning and Extensions
 #'
-#' @param X A matrix of covariates.
-#' @param A A binary treatment vector.
-#' @param Y Outcome vector.
-#' @param alpha Elastic net mixing parameter (0 = ridge, 1 = lasso).
-#' @param lambda Optional regularization strength.
-#' @return Method value function, recommend treatment and model summary.
+#' Supports standard Q-learning, Lasso, Elastic Net, and Bayesian Weighted Q-learning.
+#'
+#' @param data A data.frame including covariates, treatment, and outcome.
+#' @param formula A formula specifying the model.
+#' @param method Method used: "Qlearning", "Lasso", "ElasticNet", or "BayesianQ".
+#' @param treatment Treatment column name (default "a").
+#' @param outcome Outcome column name (default "y").
+#' @param prior_mean Prior means (BayesianQ only).
+#' @param prior_sd Prior variances (BayesianQ only).
+#' @param sample_sd Sample variances (optional).
+#' @param default_var Default variance for weak priors.
+#' @return A list containing model, methodvalue, recommended treatments, and more.
 #' @export
-#'
 dtr <-  function(data, formula = f1, method = "Qlearning", treatment = "a", outcome = "y",
                  prior_mean = NULL, prior_sd = NULL, sample_sd = NULL, default_var = 1e6){
   levels <- levels(data[[treatment]])
