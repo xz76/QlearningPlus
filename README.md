@@ -73,3 +73,37 @@ fit_elnet <- dtr(data = sample_data, formula = f1, method = "ElasticNet")
 # Bayesian Q-learning with default non-informative priors
 fit_bayes <- dtr(data = sample_data, formula = f1, method = "BayesianQ")
 ```
+
+## `plot_dtr_forest` Plot Function
+
+### BayesianQ Method 
+
+— Posterior Distribution Visualization
+
+The function `plot_dtr_forest()` provides a clear visualization of the posterior 
+distributions of treatment effects obtained from Bayesian Q-learning. 
+This plot helps illustrate both the uncertainty and the distributional 
+shape of the posterior samples for each treatment.
+
+
+```r
+# Assuming fit_bayes is the output from dtr(..., method = "BayesianQ")
+plot_dtr_forest(fit_bayes, method = "BayesianQ")
+```
+
+### Lasso / ElasticNet Methods
+
+— Coefficient Visualization
+
+The `plot_dtr_forest()` function can also be used to visualize the non-zero 
+coefficients selected by Lasso and Elastic Net models in the QlearningPlus package. 
+This provides an intuitive, forest-plot-style display of the estimated effects of 
+covariates after regularization.
+
+``` r
+# Assuming fit_lasso is the output from dtr(..., method = "Lasso")
+plot_dtr_forest(fit_lasso, method = "Lasso")
+
+# Assuming fit_elnet is the output from dtr(..., method = "ElasticNet")
+plot_dtr_forest(fit_elnet, method = "ElasticNet")
+```
