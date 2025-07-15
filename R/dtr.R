@@ -190,4 +190,23 @@ dtr <-  function(data, formula = f1, method = "Qlearning", treatment = "a", outc
     )
     return(result)
   }
+  if (method == "CVAE") {
+    treatment_matrix <- data[[treatment]]  # or your treatment column names
+    treatment_factor <- factor(treatment_matrix, levels = 1:length(unique(treatment_matrix)))
+    binary_matrix <- model.matrix(~ treatment_factor - 1)
+
+    cvae_result <- fit_cvae_encoder(as.matrix(binary_matrix), latent_dim = 3, epochs = 50)
+
+    encoder_output <- cvae_result$encoder_output
+
+    data_with_latent <- cbind(data, encoder_output)
+
+    result <- list(
+      encoder_output = encoder_output,
+      encoder_model = cvae_result$encoder_model,
+      decoder_model = cvae_result$decoder_model,
+      cvae_model = cvae_result$cvae_model,
+      data = data_with_latent
+    )
+  }
 }
