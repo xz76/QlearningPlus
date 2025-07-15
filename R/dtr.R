@@ -122,60 +122,72 @@ dtr <-  function(data, formula = f1, method = "Qlearning", treatment = "a", outc
     )
     return(result)
   }
- if(method == "BayesianQ"){
-   # If no prior means or prior variances are provided, default to non-informative
-   if (is.null(prior_mean)) prior_mean <- rep(0, length(levels))
-   if (is.null(prior_sd)) prior_sd <- rep(default_var, length(levels))  # large prior variance -> non-informative
-   if (is.null(sample_sd)) {
-     # Estimate sample variance per group if not supplied
-     sample_sd <- sapply(levels, function(b) var(data[[outcome]][data[[treatment]] == b], na.rm = TRUE))
-   }
-   # Compute posterior means
-   miuhat <- sapply( seq_along(levels), function(i) {
-     vec <- data[[outcome]][data[[treatment]] == levels[i]]
-     ybar <- mean(vec, na.rm = TRUE)
-     n <- length(vec)
+  if (method == "BayesianQ") {
+    if (is.null(prior_mean)) prior_mean <- rep(0, length(levels))
+    if (is.null(prior_sd)) prior_sd <- rep(default_var, length(levels))  # large prior variance -> non-informative
+    if (is.null(sample_sd)) {
+      sample_sd <- sapply(levels, function(b) var(data[[outcome]][data[[treatment]] == b], na.rm = TRUE))
+    }
 
-     weight_data <- sample_sd[i] / n
-     post_mean <- (prior_sd[i] / (weight_data + prior_sd[i])) * ybar +
-       (weight_data / (weight_data + prior_sd[i])) * prior_mean[i]
-     post_mean
-   })
+    n_samples <- 1000  # Posterior samples per treatment
 
-   names(miuhat) <- paste0("treatment_", levels)
-  residual <- do.call(c, lapply(c(1:length(levels)), function(b){
-    data[[outcome]][data[[treatment]] == b] - miuhat[b]
-  }))
-   weights <- 1/(abs(scale(residual) + 1))
+    # Compute posterior means and posterior samples
+    posterior_list <- lapply(seq_along(levels), function(i) {
+      vec <- data[[outcome]][data[[treatment]] == levels[i]]
+      ybar <- mean(vec, na.rm = TRUE)
+      n <- length(vec)
 
-   m1 <- glmnetUtils::cv.glmnet(formula, data = data, weights = weights,
-                                nfolds = 10, alpha = 1)
-   coef_mat <- as.matrix(coef(m1, s = "lambda.min"))
-   nonzero_coef <- coef_mat[abs(coef_mat[, 1]) != 0, , drop = FALSE]
-   coef_names <- rownames(nonzero_coef)
-   get_opt <- function(data, model){
-     res <- matrix(NA, nrow = nrow(data),
-                   ncol = length(unique(data$a)))
-     for (i in seq(length(unique(data$a)))){
-       data$a <- i
-       data$a <- factor(data[[treatment]], levels = levels)
-       res[, i] <- predict(m1, data, s = "lambda.min")
-     }
-     res
-   }
-   # Compute optimal treatment recommendations
-   opt_mat <- get_opt(data, m1)
-   recommend <- as.integer(apply(opt_mat, 1, which.max))
-   methodvalue <- mean(apply(opt_mat, 1, max))
-   # Output
-   result <- list(
-     model = m1,  # Return the glmnet model directly, not summary
-     methodvalue = methodvalue,
-     recommend = recommend,
-     alpha = m1$lambda.min,
-     selected_variables = coef_names,
-     data = data
-   )
-   return(result)
- }
+      weight_data <- sample_sd[i] / n
+      post_var <- 1 / (1 / prior_sd[i] + n / sample_sd[i])  # Posterior variance (conjugate normal)
+      post_mean <- (prior_sd[i] / (weight_data + prior_sd[i])) * ybar +
+        (weight_data / (weight_data + prior_sd[i])) * prior_mean[i]
+
+      # Sample from posterior
+      rnorm(n_samples, mean = post_mean, sd = sqrt(post_var))
+    })
+
+    posterior_samples_df <- as.data.frame(do.call(cbind, posterior_list))
+    colnames(posterior_samples_df) <- paste0("Treatment_", levels)
+
+    miuhat <- colMeans(posterior_samples_df)
+    names(miuhat) <- paste0("treatment_", levels)
+
+    residual <- do.call(c, lapply(seq_along(levels), function(b) {
+      data[[outcome]][data[[treatment]] == levels[b]] - miuhat[b]
+    }))
+
+    weights <- 1 / (abs(scale(residual)) + 1)
+
+    m1 <- glmnetUtils::cv.glmnet(formula, data = data, weights = weights,
+                                 nfolds = 10, alpha = 1)
+    coef_mat <- as.matrix(coef(m1, s = "lambda.min"))
+    nonzero_coef <- coef_mat[abs(coef_mat[, 1]) != 0, , drop = FALSE]
+    coef_names <- rownames(nonzero_coef)
+
+    get_opt <- function(data, model) {
+      res <- matrix(NA, nrow = nrow(data), ncol = length(unique(data$a)))
+      for (i in seq_along(unique(data$a))) {
+        data$a <- i
+        data$a <- factor(data[[treatment]], levels = levels)
+        res[, i] <- predict(m1, data, s = "lambda.min")
+      }
+      res
+    }
+
+    opt_mat <- get_opt(data, m1)
+    recommend <- as.integer(apply(opt_mat, 1, which.max))
+    methodvalue <- mean(apply(opt_mat, 1, max))
+
+    result <- list(
+      model = m1,
+      methodvalue = methodvalue,
+      recommend = recommend,
+      alpha = m1$lambda.min,
+      selected_variables = coef_names,
+      posterior_means = miuhat,
+      posterior_samples = posterior_samples_df,
+      data = data
+    )
+    return(result)
+  }
 }

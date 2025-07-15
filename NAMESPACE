@@ -2,6 +2,7 @@
 
 export(cvae_qlearning)
 export(dtr)
+export(plot_dtr_forest)
 export(qlearning_bayes)
 export(qlearning_classQ)
 export(qlearning_elasticnet)
