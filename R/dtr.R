@@ -31,10 +31,14 @@ dtr <-  function(data, formula = f1, method = "Qlearning", treatment = "a", outc
     }
     recommend <- as.integer(apply(get_opt(data, m1), 1, which.max))
     methodvalue <- mean(apply(get_opt(data, m1), 1, max))
-    list(model = summary(m1),
-      methodvalue = methodvalue,
-      recommend = recommend,
-      data = data)
+    newdat <- data
+    newdat[[treatment]] <- as.factor(recommend)
+    psudo_outcome <- predict(m1, newdat)
+    return(list(model = summary(m1),
+                methodvalue = methodvalue,
+                recommend = recommend,
+                data = data,
+                psudo_outcome = psudo_outcome))
   }
   if (method == "Lasso") {
 
@@ -63,7 +67,9 @@ dtr <-  function(data, formula = f1, method = "Qlearning", treatment = "a", outc
     opt_mat <- get_opt(data, m1)
     recommend <- as.integer(apply(opt_mat, 1, which.max))
     methodvalue <- mean(apply(opt_mat, 1, max))
-
+    newdat <- data
+    newdat[[treatment]] <- as.factor(recommend)
+    psudo_outcome <- predict(m1, newdat)
     # Output
     result <- list(
       model = m1,  # Return the glmnet model directly, not summary
@@ -71,7 +77,8 @@ dtr <-  function(data, formula = f1, method = "Qlearning", treatment = "a", outc
       recommend = recommend,
       alpha = m1$lambda.min,
       selected_variables = coef_names,
-      data = data
+      data = data,
+      psudo_outcome = psudo_outcome
     )
 
     return(result)
@@ -110,7 +117,9 @@ dtr <-  function(data, formula = f1, method = "Qlearning", treatment = "a", outc
     opt_mat <- get_opt(data, m1)
     recommend <- as.integer(apply(opt_mat, 1, which.max))
     methodvalue <- mean(apply(opt_mat, 1, max))
-
+    newdat <- data
+    newdat[[treatment]] <- as.factor(recommend)
+    psudo_outcome <- predict(m1, newdat)
     # Output
     result <- list(
       model = m1,  # Return the glmnet model directly, not summary
@@ -118,7 +127,8 @@ dtr <-  function(data, formula = f1, method = "Qlearning", treatment = "a", outc
       recommend = recommend,
       alpha = m1$lambda.min,
       selected_variables = coef_names,
-      data = data
+      data = data,
+      psudo_outcome = psudo_outcome
     )
     return(result)
   }
@@ -177,7 +187,9 @@ dtr <-  function(data, formula = f1, method = "Qlearning", treatment = "a", outc
     opt_mat <- get_opt(data, m1)
     recommend <- as.integer(apply(opt_mat, 1, which.max))
     methodvalue <- mean(apply(opt_mat, 1, max))
-
+    newdat <- data
+    newdat[[treatment]] <- as.factor(recommend)
+    psudo_outcome <- predict(m1, newdat)
     result <- list(
       model = m1,
       methodvalue = methodvalue,
@@ -186,7 +198,8 @@ dtr <-  function(data, formula = f1, method = "Qlearning", treatment = "a", outc
       selected_variables = coef_names,
       posterior_means = miuhat,
       posterior_samples = posterior_samples_df,
-      data = data
+      data = data,
+      psudo_outcome = psudo_outcome
     )
     return(result)
   }
