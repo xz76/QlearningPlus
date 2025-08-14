@@ -18,25 +18,30 @@ multi_dtr <- function(data,
                       stages,
                       method = "Qlearning",
                       treatment_prefix = "A",
-                      outcome = "Y",
+                      outcome_list = NULL,
                       formula_list = NULL,
                       formula_fn = NULL,
                       use_individual_pseudoY = TRUE,
                       ...) {
 
+  if (is.null(outcome_list) || length(outcome_list) != stages) {
+    stop("Please provide outcome_list with one outcome name per stage (e.g., c('Y1', 'Y2')).")
+  }
+
   results <- vector("list", stages)
-  pseudoY <- data[[outcome]]
+  pseudoY <- data[[outcome_list[stages]]]  # true Y for the final stage
 
   for (stage in stages:1) {
     trt_col <- paste0(treatment_prefix, stage)
+    outcome <- outcome_list[stage]
     temp_data <- data
     temp_data[[outcome]] <- pseudoY
     temp_data[[trt_col]] <- factor(temp_data[[trt_col]])
 
     # Get formula for this stage
     stage_formula <- if (!is.null(formula_list)) {
-      if ((stage) %in% c(1: length(formula_list))) {
-        formula_list[[(stage)]]
+      if (as.character(stage) %in% names(formula_list)) {
+        formula_list[[as.character(stage)]]
       } else {
         stop(paste0("No formula provided for stage ", stage))
       }
@@ -46,10 +51,11 @@ multi_dtr <- function(data,
       stop("Must provide either `formula_list` or `formula_fn`.")
     }
 
-    rhs_terms <- paste(all.vars(stage_formula)[-1], collapse = " + ")
-    stage_formula <- as.formula(paste0(outcome, " ~ ", rhs_terms))
+    # Replace LHS of formula with correct outcome
+    rhs <- paste(all.vars(stage_formula)[-1], collapse = " + ")
+    stage_formula <- as.formula(paste0(outcome, " ~ ", rhs))
 
-    # Fit DTR model
+    # Run dtr
     dtr_result <- dtr(
       data = temp_data,
       formula = stage_formula,
@@ -61,8 +67,18 @@ multi_dtr <- function(data,
 
     results[[stage]] <- dtr_result
 
-      pseudoY <- dtr_result$psudo_outcome
-
+    # Prepare pseudoY for earlier stage
+    if (stage > 1) {
+      if (use_individual_pseudoY) {
+        if (!is.null(dtr_result$psudo_outcome)) {
+          pseudoY <- data[[outcome_list[stage - 1]]] + dtr_result$psudo_outcome
+        } else {
+          stop("`psudo_outcome` not found in dtr_result.")
+        }
+      } else {
+        pseudoY <- data[[outcome_list[stage - 1]]] + rep(dtr_result$methodvalue, nrow(data))
+      }
+    }
   }
 
   return(results)

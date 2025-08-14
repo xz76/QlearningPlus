@@ -204,22 +204,69 @@ dtr <-  function(data, formula = f1, method = "Qlearning", treatment = "a", outc
     return(result)
   }
   if (method == "CVAE") {
-    treatment_matrix <- data[[treatment]]  # or your treatment column names
-    treatment_factor <- factor(treatment_matrix, levels = 1:length(unique(treatment_matrix)))
-    binary_matrix <- model.matrix(~ treatment_factor - 1)
+    # One-hot encode treatment
+    treatment_vector <- as.integer(data[[treatment]])
+    treatment_levels <- sort(unique(treatment_vector))
+    treatment_factor <- factor(treatment_vector, levels = treatment_levels)
+    treatment_matrix <- model.matrix(~ treatment_factor - 1)
 
-    cvae_result <- fit_cvae_encoder(as.matrix(binary_matrix), latent_dim = 3, epochs = 50)
+    # Fit CVAE
+    cvae_result <- fit_cvae_encoder(
+      treatment_matrix = treatment_matrix,
+      latent_dim = 3,
+      intermediate_dim = 16,
+      epochs = 50,
+      batch_size = 16
+    )
 
     encoder_output <- cvae_result$encoder_output
+    z_names <- paste0("z", seq_len(ncol(encoder_output)))
+    colnames(encoder_output) <- z_names
+    data_with_z <- cbind(data, encoder_output)
 
-    data_with_latent <- cbind(data, encoder_output)
+    # Build regression formula: Y ~ X1 + X2 + A1 + z1 + z2 + z3
+    covars <- setdiff(names(data), c(treatment, outcome))
+    formula_z <- as.formula(
+      paste(outcome, "~", paste(c(covars, z_names), collapse = " + "))
+    )
 
-    result <- list(
+    # Fit outcome model
+    outcome_model <- lm(formula_z, data = data_with_z)
+
+    # Optimize z to maximize predicted Y per subject
+    n <- nrow(data)
+    latent_dim <- ncol(encoder_output)
+    z_grid <- matrix(runif(100 * latent_dim, -2, 2), ncol = latent_dim)
+    colnames(z_grid) <- z_names
+
+    predict_for_z <- function(i) {
+      subject_row <- data[i, covars, drop = FALSE]
+      test_df <- do.call("rbind", replicate(nrow(z_grid), subject_row, simplify = FALSE))
+      test_df <- cbind(test_df, z_grid)
+      preds <- predict(outcome_model, newdata = test_df)
+      best_idx <- which.max(preds)
+      best_z <- z_grid[best_idx, , drop = FALSE]
+      best_pred <- preds[best_idx]
+      list(z = best_z, y = best_pred)
+    }
+
+    opt_z_list <- lapply(seq_len(n), predict_for_z)
+    opt_z_matrix <- do.call(rbind, lapply(opt_z_list, `[[`, "z"))
+    opt_y <- sapply(opt_z_list, `[[`, "y")
+
+    # Decode optimal latent z to treatment recommendation
+    decoder_model <- cvae_result$decoder_model
+    decoded_matrix <- decoder_model$predict(opt_z_matrix)
+    recommend <- apply(decoded_matrix, 1, which.max)
+
+    return(list(
       encoder_output = encoder_output,
       encoder_model = cvae_result$encoder_model,
-      decoder_model = cvae_result$decoder_model,
-      cvae_model = cvae_result$cvae_model,
-      data = data_with_latent
-    )
+      decoder_model = decoder_model,
+      outcome_model = outcome_model,
+      recommend = recommend,
+      psudo_outcome = opt_y,
+      data = data
+    ))
   }
 }
