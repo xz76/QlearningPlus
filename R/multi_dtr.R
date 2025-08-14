@@ -35,8 +35,8 @@ multi_dtr <- function(data,
 
     # Get formula for this stage
     stage_formula <- if (!is.null(formula_list)) {
-      if (as.character(stage) %in% names(formula_list)) {
-        formula_list[[as.character(stage)]]
+      if ((stage) %in% c(1: length(formula_list))) {
+        formula_list[[(stage)]]
       } else {
         stop(paste0("No formula provided for stage ", stage))
       }
@@ -46,7 +46,6 @@ multi_dtr <- function(data,
       stop("Must provide either `formula_list` or `formula_fn`.")
     }
 
-    # 🔧 Update the LHS of the formula to match the current outcome column name
     rhs_terms <- paste(all.vars(stage_formula)[-1], collapse = " + ")
     stage_formula <- as.formula(paste0(outcome, " ~ ", rhs_terms))
 
@@ -61,8 +60,6 @@ multi_dtr <- function(data,
     )
 
     results[[stage]] <- dtr_result
-
-    # Update pseudo-outcome for next (earlier) stage
 
       pseudoY <- dtr_result$psudo_outcome
 
