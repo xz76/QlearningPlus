@@ -15,7 +15,8 @@
 #' @export
 #'
 dtr <-  function(data, formula = f1, method = "Qlearning", treatment = "a", outcome = "y",
-                 prior_mean = NULL, prior_sd = NULL, sample_sd = NULL, default_var = 1e6){
+                 prior_mean = NULL, prior_sd = NULL, sample_sd = NULL, default_var = 1e6,
+                 latent_dim = 2, intermediate_dim = 32, epochs = 10){
   levels <- levels(data[[treatment]])
   if(method == "Qlearning"){
     m1 <- lm(formula, data = data)
@@ -211,9 +212,9 @@ dtr <-  function(data, formula = f1, method = "Qlearning", treatment = "a", outc
     # Fit CVAE
     cvae_result <- fit_cvae_encoder(
       treatment_matrix = treatment_matrix,
-      latent_dim = 2,
-      intermediate_dim = 32,
-      epochs = 40,
+      latent_dim = latent_dim,
+      intermediate_dim = intermediate_dim,
+      epochs = epochs,
       batch_size = 16
     )
 
