@@ -11,7 +11,6 @@ multi_dtr(
   treatment_prefix = "A",
   outcome_list = NULL,
   formula_list = NULL,
-  formula_fn = NULL,
   use_individual_pseudoY = TRUE,
   ...
 )
@@ -25,8 +24,9 @@ multi_dtr(
 
 \item{treatment_prefix}{Prefix of treatment variables (e.g., "A" for A1, A2, ...).}
 
-\item{formula_list}{A named list of formulas (e.g., list("1" = Y ~ X1 + X2 + A1, "2" = Y ~ X1 + X2 + A1 + A2)).
-Alternatively, a function formula_fn(stage) can be used.}
+\item{formula_list}{A named list of formulas
+(e.g., list("1" = Y ~ (X1 + X2)* A1, "2" = Y ~ A2 *(X1 + X2))).
+             Alternatively, a function formula_fn(stage) can be used.}
 
 \item{use_individual_pseudoY}{If TRUE, use per-individual max predicted values as pseudo-outcomes (default: TRUE).}
 

@@ -9,8 +9,7 @@ fit_cvae_encoder(
   latent_dim = 3,
   intermediate_dim = 16,
   epochs = 50,
-  batch_size = 32,
-  verbose = 1
+  batch_size = 16
 )
 }
 \arguments{
