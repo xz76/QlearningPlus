@@ -60,7 +60,7 @@ qlearning_gof_plot <- function(dtr_result, outcome = "y") {
     Predicted = predicted
   )
 
-  p <- ggplot(df, aes(x = Observed, y = Predicted)) +
+  p <- ggplot(df, aes(x = df[, 1], y = df[, 2])) +
     geom_point(alpha = 0.7) +
     geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "gray50") +
     theme_minimal(base_size = 14) +

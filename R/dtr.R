@@ -211,9 +211,9 @@ dtr <-  function(data, formula = f1, method = "Qlearning", treatment = "a", outc
     # Fit CVAE
     cvae_result <- fit_cvae_encoder(
       treatment_matrix = treatment_matrix,
-      latent_dim = 3,
-      intermediate_dim = 16,
-      epochs = 50,
+      latent_dim = 2,
+      intermediate_dim = 32,
+      epochs = 40,
       batch_size = 16
     )
 
@@ -224,13 +224,13 @@ dtr <-  function(data, formula = f1, method = "Qlearning", treatment = "a", outc
 
     # Build regression formula: Y ~ X1 + X2 + A1 + z1 + z2 + z3
     covars <- setdiff(names(data), c(treatment, outcome))
+    covars <- c("X1", "X2")
     formula_z <- as.formula(
-      paste(outcome, "~", paste(c(covars, z_names), collapse = " + "))
+      paste(outcome, "~(", paste(c(z_names), collapse = "+"),")*(", paste(c(covars), collapse = " + "), ")")
     )
 
     # Fit outcome model
     outcome_model <- lm(formula_z, data = data_with_z)
-
     # Optimize z to maximize predicted Y per subject
     n <- nrow(data)
     latent_dim <- ncol(encoder_output)
