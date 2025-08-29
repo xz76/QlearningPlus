@@ -5,22 +5,26 @@ output: github_document
 
 # QlearningPlus
 
-`QlearningPlus` is an R package that implements and extends Q-learning methods for estimating optimal dynamic treatment regimes (DTRs). This package integrates standard Q-learning approaches and introduces regularized and Bayesian extensions, including a deep learning-based method using Conditional Variational Autoencoders (CVAE), suitable for high-dimensional or multi-treatment settings.
+`QlearningPlus`is an R package for estimating optimal dynamic treatment regimes (DTRs)
+using Q-learning and its extensions. The package integrates standard approaches and
+introduces regularized, Bayesian, and deep learning–based methods (via Conditional 
+Variational Autoencoders, CVAE), making it suitable for high-dimensional or multi-treatment settings.
 
 ## Features
 
--   Standard Q-learning via the `DynTxRegime` package
--   Q-learning with Lasso regularization
--   Q-learning with Elastic Net regularization
--   Bayesian Weighted Q-learning for small-sample settings
--   CVAE Q-learning for high-dimensional treatment spaces
+	-	Q-learning with Lasso regularization
+	-	Q-learning with Elastic Net regularization
+	-	Bayesian Weighted Q-learning for small-sample settings
+	-	CVAE Q-learning for high-dimensional treatment spaces
+	-	Multi-stage DTR estimation via backward induction (multi_dtr())
 
 ## Installation
 
 ``` r
 # Install dependencies 
 
-install.packages(c("glmnet",  "rstan", "keras", "tensorflow", "caret")) keras::install_keras()
+install.packages(c("glmnet",  "rstan", "keras", "tensorflow", "caret"))
+keras::install_keras()
 
 # Install the development version from GitHub
 
@@ -29,7 +33,7 @@ devtools::install_github("xz76/QlearningPlus")
 
 # Example Usage
 
-The package includes a built-in simulated dataset named sample_data and example formula.
+The package includes a built-in simulated dataset sample_data and an example regression formula `f1`.
 
 ``` r
 # Load built-in dataset and formula
@@ -41,32 +45,88 @@ head(sample_data)
 f1
 ```
 
-Define the regression formula as `f1`
 
-## `dtr()` Function Overview
+## Function Overview
 
-The dtr() function is a unified interface for estimating optimal dynamic treatment regimes (DTRs) using various extensions of Q-learning. It supports standard regression-based Q-learning, Lasso and Elastic Net regularization, Bayesian-weighted Q-learning, and can accommodate user-defined priors on treatment effects.
+- The `dtr()` function is a unified interface for estimating optimal dynamic treatment regimes (DTRs)
+using various extensions of Q-learning. It supports standard regression-based Q-learning, 
+Lasso and Elastic Net regularization, Bayesian-weighted Q-learning, and can accommodate 
+user-defined priors on treatment effects.
 
-Key Features • Standard Q-learning via linear regression. • Lasso-penalized Q-learning via glmnet. • Elastic Net Q-learning via caret and glmnet. • Bayesian Q-learning using conjugate normal priors and precision weighting. • Flexible for multi-treatment settings.
+- The `multi_dtr()` function supports multiple stage DTRs by calling `dtr()` based on backward induction.
+
+
+### Key Features 
+
+- Standard Q-learning via linear regression. 
+- Lasso-penalized Q-learning via glmnet. 
+- Elastic Net Q-learning via caret and glmnet. 
+- Bayesian Q-learning using conjugate normal priors and precision weighting.
+- Conditional VAE Q-learning via encoder and decoder process.
+- Compatible with multi-treatment and high-dimensional settings
+
 
 ## Example Usage
 
+- The example data `tmp` has two decision points with two variables.
+- `formula_list` is the list of formula corresponding to each stages.
+
 ``` r
 library(QlearningPlus)
-data(sample_data)
-data(f1)
+data(tmp)
+data(formula_list)
 
 # Standard Q-learning
-fit_q <- dtr(data = sample_data, formula = f1, method = "Qlearning")
+fit_q <- multi_dtr(
+    data = tmp,
+    stages = 2,
+    method = "Qlearning",
+    treatment_prefix = "A",
+    outcome_list = c("Y1", "Y2"),
+    formula_list = formula_list
+)
 
 # Lasso-penalized Q-learning
-fit_lasso <- dtr(data = sample_data, formula = f1, method = "Lasso")
+fit_lasso <- multi_dtr(
+    data = tmp,
+    stages = 2,
+    method = "lasso",
+    treatment_prefix = "A",
+    outcome_list = c("Y1", "Y2"),
+    formula_list = formula_list
+)
 
 # Elastic Net Q-learning
-fit_elnet <- dtr(data = sample_data, formula = f1, method = "ElasticNet")
+fit_elnet <- multi_dtr(
+    data = tmp,
+    stages = 2,
+    method = "ElasticNet",
+    treatment_prefix = "A",
+    outcome_list = c("Y1", "Y2"),
+    formula_list = formula_list
+)
 
 # Bayesian Q-learning with default non-informative priors
-fit_bayes <- dtr(data = sample_data, formula = f1, method = "BayesianQ")
+fit_bayes <- multi_dtr(
+    data = tmp,
+    stages = 2,
+    method = "BaysianQ",
+    treatment_prefix = "A",
+    outcome_list = c("Y1", "Y2"),
+    formula_list = formula_list
+)
+
+# CVAE Q-learning
+fit_CVAE <- multi_dtr(
+    data = tmp,
+    stages = 2,
+    method = "CVAE",
+    treatment_prefix = "A",
+    outcome_list = c("Y1", "Y2"),
+    formula_list = formula_list
+)
+
+
 ```
 
 ## `plot_dtr_forest` Plot Function
@@ -98,12 +158,9 @@ plot_dtr_forest(fit_elnet, method = "ElasticNet")
 
 ## `qlearning_gof()` Goodness-of-Fit Metrics
 
-The `qlearning_gof()` function computes standard goodness-of-fit (GOF) metrics
-to evaluate how well the model predictions align with the observed outcomes. 
-This is particularly useful for comparing models across different Q-learning 
-methods (standard, Lasso, ElasticNet).The key metrics provided: RMSE, MAE, R$^2$
+The `qlearning_gof()` function computes standard goodness-of-fit (GOF) metrics to evaluate how well the model predictions align with the observed outcomes. This is particularly useful for comparing models across different Q-learning methods (standard, Lasso, ElasticNet).The key metrics provided: RMSE, MAE, R$^2$
 
-```r
+``` r
 # Assuming fit_lasso is the output from dtr(..., method = "Lasso")
 qlearning_gof(fit_lasso)
 
@@ -113,6 +170,3 @@ qlearning_gof(fit_elnet)
 # Assuming fit_q is the output from dtr(..., method = "Qlearning")
 qlearning_gof(fit_q)
 ```
-
-
-

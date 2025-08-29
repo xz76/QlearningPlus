@@ -2,8 +2,11 @@
 
 export(dtr)
 export(dtr_gof)
+export(fit_cvae_encoder)
+export(multi_dtr)
 export(plot_dtr_forest)
 export(qlearning_bayes)
 export(qlearning_classQ)
 export(qlearning_elasticnet)
 export(qlearning_lasso)
+export(simulate_dtr_data)
