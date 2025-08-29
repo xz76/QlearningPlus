@@ -119,7 +119,10 @@ fit_CVAE <- multi_dtr(
     method = "CVAE",
     treatment_prefix = "A",
     outcome_list = c("Y1", "Y2"),
-    formula_list = formula_list
+    formula_list = formula_list, 
+    epoch = 10,
+    latent_dim = 2, 
+    intermediate_dim = 32
 )
 ```
 
