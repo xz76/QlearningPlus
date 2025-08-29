@@ -20,7 +20,6 @@ multi_dtr <- function(data,
                       treatment_prefix = "A",
                       outcome_list = NULL,
                       formula_list = NULL,
-                      formula_fn = NULL,
                       use_individual_pseudoY = TRUE,
                       ...) {
 
@@ -30,7 +29,6 @@ multi_dtr <- function(data,
 
   results <- vector("list", stages)
   pseudoY <- data[[outcome_list[stages]]]  # true Y for the final stage
-
   for (stage in stages:1) {
     trt_col <- paste0(treatment_prefix, stage)
     outcome <- outcome_list[stage]
@@ -45,16 +43,9 @@ multi_dtr <- function(data,
       } else {
         stop(paste0("No formula provided for stage ", stage))
       }
-    } else if (!is.null(formula_fn)) {
-      formula_fn(stage)
     } else {
       stop("Must provide either `formula_list` or `formula_fn`.")
     }
-
-    # Replace LHS of formula with correct outcome
-    rhs <- paste(all.vars(stage_formula)[-1], collapse = " + ")
-    stage_formula <- as.formula(paste0(outcome, " ~ ", rhs))
-
     # Run dtr
     dtr_result <- dtr(
       data = temp_data,

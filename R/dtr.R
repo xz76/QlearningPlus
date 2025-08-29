@@ -43,7 +43,6 @@ dtr <-  function(data, formula = f1, method = "Qlearning", treatment = "a", outc
   if (method == "Lasso") {
 
     m1 <- glmnetUtils::cv.glmnet(formula, data = data, nfolds = 10)
-
     # Extract non-zero coefficients
     coef_mat <- as.matrix(coef(m1, s = "lambda.min"))
     nonzero_coef <- coef_mat[abs(coef_mat[, 1]) != 0, , drop = FALSE]
@@ -68,7 +67,7 @@ dtr <-  function(data, formula = f1, method = "Qlearning", treatment = "a", outc
     recommend <- as.integer(apply(opt_mat, 1, which.max))
     methodvalue <- mean(apply(opt_mat, 1, max))
     newdat <- data
-    newdat[[treatment]] <- as.factor(recommend)
+    newdat[[treatment]] <- factor(recommend, levels = levels(data[[treatment]]))
     psudo_outcome <- predict(m1, newdat)
     # Output
     result <- list(
@@ -118,7 +117,7 @@ dtr <-  function(data, formula = f1, method = "Qlearning", treatment = "a", outc
     recommend <- as.integer(apply(opt_mat, 1, which.max))
     methodvalue <- mean(apply(opt_mat, 1, max))
     newdat <- data
-    newdat[[treatment]] <- as.factor(recommend)
+    newdat[[treatment]] <- factor(recommend, levels = levels(data[[treatment]]))
     psudo_outcome <- predict(m1, newdat)
     # Output
     result <- list(
@@ -138,7 +137,6 @@ dtr <-  function(data, formula = f1, method = "Qlearning", treatment = "a", outc
     if (is.null(sample_sd)) {
       sample_sd <- sapply(levels, function(b) var(data[[outcome]][data[[treatment]] == b], na.rm = TRUE))
     }
-
     n_samples <- 1000  # Posterior samples per treatment
 
     # Compute posterior means and posterior samples
@@ -174,12 +172,12 @@ dtr <-  function(data, formula = f1, method = "Qlearning", treatment = "a", outc
     nonzero_coef <- coef_mat[abs(coef_mat[, 1]) != 0, , drop = FALSE]
     coef_names <- rownames(nonzero_coef)
 
-    get_opt <- function(data, model) {
-      res <- matrix(NA, nrow = nrow(data), ncol = length(unique(data$a)))
-      for (i in seq_along(unique(data$a))) {
-        data$a <- i
-        data$a <- factor(data[[treatment]], levels = levels)
-        res[, i] <- predict(m1, data, s = "lambda.min")
+    get_opt <- function(data, model){
+      res <- matrix(NA, nrow = nrow(data), ncol = length(unique(data[[treatment]])))
+      for (i in seq(length(unique(data[[treatment]])))){
+        data[[treatment]] <- i
+        data[[treatment]] <- factor(data[[treatment]], levels = levels)
+        res[, i] <- predict(m1, data)
       }
       res
     }
@@ -188,7 +186,7 @@ dtr <-  function(data, formula = f1, method = "Qlearning", treatment = "a", outc
     recommend <- as.integer(apply(opt_mat, 1, which.max))
     methodvalue <- mean(apply(opt_mat, 1, max))
     newdat <- data
-    newdat[[treatment]] <- as.factor(recommend)
+    newdat[[treatment]] <- factor(recommend, levels = levels(data[[treatment]]))
     psudo_outcome <- predict(m1, newdat)
     result <- list(
       model = m1,
