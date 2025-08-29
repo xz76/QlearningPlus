@@ -19,17 +19,9 @@ qlearning_gof_plot <- function(dtr_result, outcome = "y") {
   if (!requireNamespace("ggplot2", quietly = TRUE)) {
     stop("Package 'ggplot2' is required but not installed.")
   }
-
   actual <- dtr_result$data[[outcome]]
+    predicted <- dtr_result$yhat
 
-  if (inherits(dtr_result$model, "lm")) {
-    predicted <- fitted(dtr_result$model)
-  } else if (inherits(dtr_result$model, "cv.glmnet")) {
-    predicted <- predict(dtr_result$model, newdata = dtr_result$data, s = "lambda.min")
-    predicted <- as.numeric(predicted)
-  } else {
-    stop("Model type not supported for goodness-of-fit plot.")
-  }
 
   df <- data.frame(
     Observed = actual,

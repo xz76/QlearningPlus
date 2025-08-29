@@ -39,7 +39,8 @@ dtr <-  function(data, formula = f1, method = "Qlearning", treatment = "a", outc
                 methodvalue = methodvalue,
                 recommend = recommend,
                 data = data,
-                psudo_outcome = psudo_outcome))
+                psudo_outcome = psudo_outcome,
+                yhat = predict(m1, data)))
   }
   if (method == "Lasso") {
 
@@ -78,7 +79,8 @@ dtr <-  function(data, formula = f1, method = "Qlearning", treatment = "a", outc
       alpha = m1$lambda.min,
       selected_variables = coef_names,
       data = data,
-      psudo_outcome = psudo_outcome
+      psudo_outcome = psudo_outcome,
+      yhat = predict(m1, data)
     )
 
     return(result)
@@ -128,7 +130,8 @@ dtr <-  function(data, formula = f1, method = "Qlearning", treatment = "a", outc
       alpha = m1$lambda.min,
       selected_variables = coef_names,
       data = data,
-      psudo_outcome = psudo_outcome
+      psudo_outcome = psudo_outcome,
+      yhat = predict(m1, data)
     )
     return(result)
   }
@@ -198,7 +201,8 @@ dtr <-  function(data, formula = f1, method = "Qlearning", treatment = "a", outc
       posterior_means = miuhat,
       posterior_samples = posterior_samples_df,
       data = data,
-      psudo_outcome = psudo_outcome
+      psudo_outcome = psudo_outcome,
+      yhat = predict(m1, data)
     )
     return(result)
   }
