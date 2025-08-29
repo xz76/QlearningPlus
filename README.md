@@ -168,7 +168,7 @@ effects of covariates after regularization.
 plot_dtr_forest(fit_lasso[[1]], method = "Lasso")
 
 #fit_elnet is the output from  multi_dtr(..., method = "ElasticNet")
-plot_dtr_forest(fit_elnet, method = "ElasticNet")
+plot_dtr_forest(fit_elnet[[1]], method = "ElasticNet")
 ```
 
 ## `qlearning_gof()` Goodness-of-Fit Metrics
