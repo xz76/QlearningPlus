@@ -23,7 +23,7 @@
 library(keras)
 library(tensorflow)
 
-fit_cvae_encoder <- function(
+fit_cvae_encoder1 <- function(
     treatment_matrix,
     latent_dim       = 3,
     intermediate_dim = 16,

@@ -1,12 +1,14 @@
-#' Fit Conditional Variational Autoencoder (CVAE) Encoder
+#' Fit Conditional Variational Autoencoder (CVAE) for Multi-Treatment Encoding
 #'
-#' @param treatment_matrix Binary matrix of treatment indicators (one-hot encoded)
-#' @param latent_dim Dimensionality of latent space
-#' @param intermediate_dim Number of units in hidden layer
-#' @param epochs Number of training epochs
-#' @param batch_size Mini-batch size
+#' Trains a CVAE using a custom training loop compatible with Keras 3 in R.
 #'
-#' @return A list with encoder/decoder models and encoder outputs
+#' @param treatment_matrix One-hot encoded treatment matrix (n × k).
+#' @param latent_dim Number of latent dimensions (default: 3).
+#' @param intermediate_dim Number of hidden units (default: 16).
+#' @param epochs Number of training epochs (default: 50).
+#' @param batch_size Mini-batch size (default: 16).
+#'
+#' @return A list containing encoder_output, encoder_model, decoder_model.
 #' @export
 fit_cvae_encoder <- function(treatment_matrix,
                              latent_dim = 3,
@@ -17,65 +19,84 @@ fit_cvae_encoder <- function(treatment_matrix,
   library(tensorflow)
 
   original_dim <- ncol(treatment_matrix)
+  n_samples <- nrow(treatment_matrix)
 
-  # Encoder
-  encoder_input <- layer_input(shape = original_dim, name = "encoder_input")
-  h <- encoder_input %>%
-    layer_dense(units = intermediate_dim, activation = "relu")
-  z_mean <- h %>%
-    layer_dense(units = latent_dim, name = "z_mean")
-  z_log_var <- h %>%
-    layer_dense(units = latent_dim, name = "z_log_var")
+  # Build encoder layers
+  encoder_input <- layer_input(shape = original_dim)
+  encoder_hidden <- layer_dense(units = intermediate_dim, activation = "relu")
+  encoder_z_mean <- layer_dense(units = latent_dim)
+  encoder_z_log_var <- layer_dense(units = latent_dim)
 
-  sampling <- function(args) {
-    z_mean <- args[[1]]
-    z_log_var <- args[[2]]
-    epsilon <- k_random_normal(shape = k_shape(z_mean))
-    z_mean + k_exp(0.5 * z_log_var) * epsilon
+  # Build decoder layers
+  decoder_hidden <- layer_dense(units = intermediate_dim, activation = "relu")
+  decoder_output_layer <- layer_dense(units = original_dim, activation = "softmax")
+
+  # Optimizer
+  optimizer <- optimizer_adam()
+
+  # Training loop
+  for (epoch in 1:epochs) {
+    cat("Epoch", epoch, "\n")
+    indices <- sample(1:n_samples)
+    for (i in seq(1, n_samples, by = batch_size)) {
+      batch_idx <- indices[i:min(i + batch_size - 1, n_samples)]
+      x_batch <- treatment_matrix[batch_idx, , drop = FALSE]
+
+      with(tf$GradientTape(persistent = FALSE) %as% tape, {
+        # Encode
+        h <- encoder_hidden(x_batch)
+        z_mean <- encoder_z_mean(h)
+        z_log_var <- encoder_z_log_var(h)
+
+        # Reparameterize
+        epsilon <- k_random_normal(shape = k_shape(z_mean))
+        z <- z_mean + k_exp(0.5 * z_log_var) * epsilon
+
+        # Decode
+        h_dec <- decoder_hidden(z)
+        x_decoded <- decoder_output_layer(h_dec)
+
+        # Compute losses
+        recon_loss <- loss_categorical_crossentropy(x_batch, x_decoded)
+        recon_loss <- tf$reduce_mean(recon_loss)
+        kl_loss <- -0.5 * tf$reduce_mean(1 + z_log_var - tf$square(z_mean) - tf$exp(z_log_var))
+        loss <- recon_loss + kl_loss
+      })
+
+      # Collect trainable variables
+      trainable_vars <- c(
+        encoder_hidden$trainable_variables,
+        encoder_z_mean$trainable_variables,
+        encoder_z_log_var$trainable_variables,
+        decoder_hidden$trainable_variables,
+        decoder_output_layer$trainable_variables
+      )
+
+      gradients <- tape$gradient(loss, trainable_vars)
+      optimizer$apply_gradients(purrr::transpose(list(gradients, trainable_vars)))
+    }
   }
 
-  z <- list(z_mean, z_log_var) %>%
-    layer_lambda(f = sampling, name = "z")
-
-  # Decoder
-  decoder_input <- layer_input(shape = latent_dim, name = "decoder_input")
-  decoder_output <- decoder_input %>%
-    layer_dense(units = intermediate_dim, activation = "relu") %>%
-    layer_dense(units = original_dim, activation = "softmax")
-
-  decoder <- keras_model(decoder_input, decoder_output, name = "decoder")
-  output <- decoder(z)
-
-  # VAE model
-  cvae <- keras_model(encoder_input, output, name = "cvae")
-
-  # Loss function
-  vae_loss <- function(x, x_decoded) {
-    recon <- loss_categorical_crossentropy(x, x_decoded)
-    recon <- k_mean(recon)
-    kl <- -0.5 * k_mean(1 + z_log_var - k_square(z_mean) - k_exp(z_log_var))
-    recon + kl
-  }
-
-  cvae %>% compile(optimizer = "adam", loss = vae_loss)
-
-  # Fit model
-  cvae %>% fit(
-    x = treatment_matrix,
-    y = treatment_matrix,
-    epochs = epochs,
-    batch_size = batch_size,
-    verbose = 1
+  # Define encoder model
+  encoder_model <- keras_model(
+    inputs = encoder_input,
+    outputs = encoder_z_mean(encoder_hidden(encoder_input))
   )
 
-  # Encoder model (return z_mean only)
-  encoder <- keras_model(encoder_input, z_mean)
-  encoder_output <- encoder %>% predict(treatment_matrix)
+  # Define decoder model
+  decoder_input <- layer_input(shape = latent_dim)
+  decoder_model <- keras_model(
+    inputs = decoder_input,
+    outputs = decoder_output_layer(decoder_hidden(decoder_input))
+  )
+
+  # Get latent encodings
+  encoder_output <- encoder_model$predict(treatment_matrix)
 
   return(list(
     encoder_output = encoder_output,
-    encoder_model = encoder,
-    decoder_model = decoder,
-    cvae_model = cvae
+    encoder_model = encoder_model,
+    decoder_model = decoder_model,
+    cvae_model = NULL  # model trained via custom loop
   ))
 }

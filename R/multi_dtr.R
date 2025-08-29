@@ -7,7 +7,8 @@
 #' @param method Q-learning method: "Qlearning", "Lasso", "ElasticNet", "BayesianQ", or "CVAE".
 #' @param treatment_prefix Prefix of treatment variables (e.g., "A" for A1, A2, ...).
 #' @param outcome Name of the outcome variable (default: "Y").
-#' @param formula_list A named list of formulas (e.g., list("1" = Y ~ X1 + X2 + A1, "2" = Y ~ X1 + X2 + A1 + A2)).
+#' @param formula_list A named list of formulas
+#'        (e.g., list("1" = Y ~ (X1 + X2)* A1, "2" = Y ~ A2 *(X1 + X2))).
 #'                     Alternatively, a function formula_fn(stage) can be used.
 #' @param use_individual_pseudoY If TRUE, use per-individual max predicted values as pseudo-outcomes (default: TRUE).
 #' @param ... Additional arguments passed to the `dtr()` function.

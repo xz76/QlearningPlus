@@ -41,34 +41,3 @@ dtr_gof <- function(dtr_result, outcome = "y") {
   return(metrics)
 }
 
-qlearning_gof_plot <- function(dtr_result, outcome = "y") {
-  library(ggplot2)
-
-  actual <- dtr_result$data[[outcome]]
-
-  if (inherits(dtr_result$model, "lm")) {
-    predicted <- fitted(dtr_result$model)
-  } else if (inherits(dtr_result$model, "cv.glmnet")) {
-    predicted <- predict(dtr_result$model, newdata = dtr_result$data, s = "lambda.min")
-    predicted <- as.numeric(predicted)
-  } else {
-    stop("Model type not supported.")
-  }
-
-  df <- data.frame(
-    Observed = actual,
-    Predicted = predicted
-  )
-
-  p <- ggplot(df, aes(x = df[, 1], y = df[, 2])) +
-    geom_point(alpha = 0.7) +
-    geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "gray50") +
-    theme_minimal(base_size = 14) +
-    labs(
-      title = "Observed vs. Predicted Outcomes",
-      x = "Observed",
-      y = "Predicted"
-    )
-
-  return(p)
-}
