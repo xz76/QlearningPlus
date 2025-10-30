@@ -13,7 +13,10 @@ dtr(
   prior_mean = NULL,
   prior_sd = NULL,
   sample_sd = NULL,
-  default_var = 1e+06
+  default_var = 1e+06,
+  latent_dim = 2,
+  intermediate_dim = 32,
+  epochs = 10
 )
 }
 \arguments{

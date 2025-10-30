@@ -109,7 +109,10 @@ fit_bayes <- multi_dtr(
     method = "BaysianQ",
     treatment_prefix = "A",
     outcome_list = c("Y1", "Y2"),
-    formula_list = formula_list
+    formula_list = formula_list,
+    prior_mean = NULL, 
+    prior_sd = NULL, 
+    sample_sd = NULL
 )
 
 # CVAE Q-learning
